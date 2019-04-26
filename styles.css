@@ -1,0 +1,14 @@
+*{
+	padding: 0;
+	margin: 1.5em 0;
+}
+
+body{
+	text-align: center;
+}
+
+canvas{
+	/*width: 90%;
+	height: 350px;*/
+	border: 1px solid #000;
+}
