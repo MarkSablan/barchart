@@ -1,11 +1,13 @@
 // TODO 
-// create a dynamic spacing for bar
+// dynamic height adaption
+// display labels  for each bar
+// hover function ?
 
 
 let canvas = document.querySelector('canvas');
 let chartCtx;
 let tempWidth = 20;
-canvas.width = 550;
+canvas.width = 500;
 canvas.height = 400;
 
 function draw(){
@@ -72,7 +74,7 @@ Bar.prototype.update = function(){
 		this.friction *= 1.00001;
 		this.speed += this.friction;
 		this.currentHeight -= this.speed;
-		console.log(this.friction + " " + this.speed);
+		// console.log(this.friction + " " + this.speed);
 	}
 }
 
@@ -105,14 +107,19 @@ function Chart(ctx, data){
 	// this.bar3 = new Bar(this.data.label[2], this.barWidth, this.data.data[2], this.xGap + 110, this.yAxis, this.peak, 320);
 	// this.bar4 = new Bar(this.data.label[3], this.barWidth, this.data.data[3], this.xGap + 160, this.yAxis, this.peak, 320);
 	this.bars = [];
+	this.barSpacing = 30;
+	// (this.areaWidth - (this.barWidth * this.bars.length)) / this.bars.length;
 	this.createBars();
-	this.barSpacing = (this.areaWidth - (this.barWidth * this.bars.length)) / this.bars.length;
 }
 
 Chart.prototype.createBars = function(){
+	// this.bars[0] = new Bar(this.data.label[0], this.barWidth, this.data.data[0], 80, this.yAxis, this.peak, 320);
 	for(let i = 0; i < this.data.data.length; i++){
 		// console.log(this.data.label[i], this.barWidth, this.data.data[i], this.xGap + 10, this.yAxis, this.peak, this.areaHeight);
-		this.bars[i] = new Bar(this.data.label[i], this.barWidth, this.data.data[i], this.xGap + 100 * i, this.yAxis, this.peak, 320);
+		this.bars[i] = new Bar(this.data.label[i], this.barWidth, this.data.data[i], ((this.barWidth + this.barSpacing) * i) + (this.barSpacing/2) + this.xGap, this.yAxis, this.peak, 320);
+		//Here is where i left off
+		let test = (this.barWidth + this.barSpacing) * i;
+		console.log("test :"+ test + `\nbarWidth: ${this.barWidth} \n barSpacing ${this.barSpacing}`);
 	}
 }
 
@@ -147,7 +154,6 @@ Chart.prototype.createGrid = function(){
 	chartCtx.fillText("0", this.xGap - 30, this.yAxis);
 	this.xLineGaps  = this.areaHeight / this.xLines;
 	// console.log(this.peak);
-	// here is where i left off
 
 }
 
@@ -161,9 +167,9 @@ Chart.prototype.displayChart = function(){
 
 let chart1 = new Chart(canvas.getContext('2d'), {
 	title : "Barchart 1",
-	label : ["Bar 1", "Bar 2", "Bar 3", "Bar 4", "Bar 5"],
-	data : [5, 4, 1, 2, 3]
+	label : ["Bar 1", "Bar 2", "Bar 3", "Bar 4", "Bar 5", "Bar 6", "Bar 6", "Bar 6"],
+	data : [120, 66, 77, 11, 55, 18, 50, 90, 100]
 });
-console.log(chart1.barWidth);
+console.log("BarSpacing " + chart1.barSpacing);
 // let bar1 = new Bar(300, 100, canvas.height);
 draw();
