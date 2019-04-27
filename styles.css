@@ -8,7 +8,10 @@ body{
 }
 
 canvas{
-	/*width: 90%;
-	height: 350px;*/
-	border: 1px solid #000;
+	/*border: 1px solid #000;*/
+}
+
+h3{
+	padding: 0;
+	margin: 0;
 }

@@ -1,15 +1,10 @@
 // TODO 
-// dynamic height adaption
-// display labels  for each bar
 // hover function ?
+// update Function
 
 
-let canvas = document.querySelector('canvas');
+
 let chartCtx;
-let tempWidth = 20;
-canvas.width = 500;
-canvas.height = 400;
-
 function draw(){
 	chartCtx.clearRect(0, 0, canvas.width, canvas.height);
 	chart1.displayChart();
@@ -38,7 +33,9 @@ function getLines(highestNum){
 
 
 // Bar constructor
-function Bar(label, width, height, xPos, yPos, highestNum, areaHeight){
+function Bar(label, width, height, xPos, yPos, highestNum, areaHeight, color){
+	// label/title of the bar
+	this.label = label;
 	// scale multiplier
 	this.scale = areaHeight / highestNum;
 	// the height of the bar, multiplied by negative number
@@ -57,14 +54,23 @@ function Bar(label, width, height, xPos, yPos, highestNum, areaHeight){
 	this.speed = 5;
 	// initial friction for acceleration
 	this.friction = 0.00001;
+	this.fillColor = color;
 	console.log("scale " + this.scale);
-
 }
 
 // Bar Prototype methods
 Bar.prototype.draw = function(){
-	chartCtx.fillStyle = 'green';
+	chartCtx.fillStyle = this.fillColor;
+	chartCtx.globalAlpha = 0.7;
 	chartCtx.fillRect(this.xPos, this.yPos, this.width, this.currentHeight);
+	chartCtx.fillStyle = 'black';
+	chartCtx.textAlign = 'center';
+	chartCtx.font = '11px Calibri'
+	chartCtx.fillText(this.label, this.xPos + (this.width/2), this.yPos + 15);
+	// chartCtx.globalAlpha = 1.0;
+	// chartCtx.strokeStyle = this.fillColor;
+	// chartCtx.rect(this.xPos, this.yPos, this.width, this.currentHeight);
+	// chartCtx.stroke();
 	this.update();
 }
 
@@ -92,34 +98,35 @@ function Chart(ctx, data){
 	chartCtx = ctx;
 	this.data = data;
 	this.xGap = 50;
-	this.yGap = 50;
-	this.yAxis = canvas.height - 50;
+	this.yGap = 70;
+	this.yAxis = canvas.height - this.yGap;
+	// Area width and height for the bar to be drawn
 	this.areaWidth = canvas.width - this.xGap;
 	this.areaHeight = canvas.height - this.yGap;
+	// Highest number from dataset
 	this.peak = getHighest(this.data.data);
 	// this.peak = getHighest(this.data.data) + (10 - (getHighest(this.data.data) % 10));
 	this.xLines = getLines(getHighest(this.data.data));
 	// Math.floor(this.areaHeight / this.peak);
 	this.xLineGaps = (this.areaHeight / this.xLines) ;
-	this.barWidth = (this.areaWidth / this.data.data.length) - 30;
-	// this.bar1 = new Bar(this.data.label[0], this.barWidth, this.data.data[0], this.xGap + 10, this.yAxis, this.peak, 320);
-	// this.bar2 = new Bar(this.data.label[1], this.barWidth, this.data.data[1], this.xGap + 60, this.yAxis, this.peak, 320);
-	// this.bar3 = new Bar(this.data.label[2], this.barWidth, this.data.data[2], this.xGap + 110, this.yAxis, this.peak, 320);
-	// this.bar4 = new Bar(this.data.label[3], this.barWidth, this.data.data[3], this.xGap + 160, this.yAxis, this.peak, 320);
+	// Computes the bar width based on the population of dataset
+	this.barWidth = (this.areaWidth / this.data.data.length) - 15;
 	this.bars = [];
-	this.barSpacing = 30;
+	// spacing between bars
+	this.barSpacing = 15;
 	// (this.areaWidth - (this.barWidth * this.bars.length)) / this.bars.length;
 	this.createBars();
+	console.log(this.bars);
 }
 
 Chart.prototype.createBars = function(){
 	// this.bars[0] = new Bar(this.data.label[0], this.barWidth, this.data.data[0], 80, this.yAxis, this.peak, 320);
 	for(let i = 0; i < this.data.data.length; i++){
 		// console.log(this.data.label[i], this.barWidth, this.data.data[i], this.xGap + 10, this.yAxis, this.peak, this.areaHeight);
-		this.bars[i] = new Bar(this.data.label[i], this.barWidth, this.data.data[i], ((this.barWidth + this.barSpacing) * i) + (this.barSpacing/2) + this.xGap, this.yAxis, this.peak, 320);
+		this.bars[i] = new Bar(this.data.label[i], this.barWidth, this.data.data[i], ((this.barWidth + this.barSpacing) * i) + (this.barSpacing/2) + this.xGap, this.yAxis, this.peak, this.areaHeight - this.xLineGaps, this.data.color[i]);
 		//Here is where i left off
 		let test = (this.barWidth + this.barSpacing) * i;
-		console.log("test :"+ test + `\nbarWidth: ${this.barWidth} \n barSpacing ${this.barSpacing}`);
+		// console.log("test :"+ test + `\nbarWidth: ${this.barWidth} \n barSpacing ${this.barSpacing}`);
 	}
 }
 
@@ -127,6 +134,7 @@ Chart.prototype.createGrid = function(){
 
 	// console.log(`Peak ${this.peak} \nxLines ${this.xLines}\nxLineGaps ${this.xLineGaps}`);
 	// draw xAxis
+	chartCtx.globalAlpha = 1.0;
 	chartCtx.strokeStyle = 'black';
 	chartCtx.beginPath();
 	chartCtx.moveTo(this.xGap, 0);
@@ -142,19 +150,24 @@ Chart.prototype.createGrid = function(){
 	// draw xAxis Lines
 	for (let i = 1; i < this.xLines + 1; i++) {
 		chartCtx.beginPath();
-		chartCtx.moveTo(this.xGap, this.xLineGaps);
+		chartCtx.moveTo(this.xGap - 5, this.xLineGaps);
 		chartCtx.lineTo(canvas.width, this.xLineGaps);
 		chartCtx.strokeStyle = 'grey';
 		chartCtx.fillStyle = 'black';
 		chartCtx.stroke();
-		chartCtx.fillText((this.peak / (this.xLines - 1) * i).toFixed(1), this.xGap - 30 , this.yAxis - this.xLineGaps);
+		chartCtx.textAlign = 'right';
+		chartCtx.font = '9px Calibri'
+		chartCtx.fillText((this.peak / (this.xLines - 1) * i).toFixed(1), this.xGap - 5, this.yAxis - this.xLineGaps - 2);
 		// console.log("Xlines: " + this.xLines + " xLineGaps: " + this.xLineGaps + " " + getHighest(this.data.data)/this.xLines);
 		this.xLineGaps += (this.xLineGaps / i);
+		// console.log(`xLineGaps ${this.yAxis - 30}`);
 	}
-	chartCtx.fillText("0", this.xGap - 30, this.yAxis);
+	chartCtx.fillText("0", this.xGap - 5, this.yAxis);
 	this.xLineGaps  = this.areaHeight / this.xLines;
-	// console.log(this.peak);
-
+	// display the chart title
+	chartCtx.textAlign = 'center';
+	chartCtx.font = '20px Calibri'
+	chartCtx.fillText(this.data.title, canvas.width/2, this.areaHeight + 45);
 }
 
 Chart.prototype.displayChart = function(){
@@ -164,12 +177,6 @@ Chart.prototype.displayChart = function(){
 	}
 }
 
-
-let chart1 = new Chart(canvas.getContext('2d'), {
-	title : "Barchart 1",
-	label : ["Bar 1", "Bar 2", "Bar 3", "Bar 4", "Bar 5", "Bar 6", "Bar 6", "Bar 6"],
-	data : [120, 66, 77, 11, 55, 18, 50, 90, 100]
-});
-console.log("BarSpacing " + chart1.barSpacing);
-// let bar1 = new Bar(300, 100, canvas.height);
-draw();
+Chart.prototype.drawChart = function(){
+	draw();
+}
