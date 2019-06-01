@@ -1,8 +1,10 @@
-// TODO 
-// hover function ?
-// update Function
+/*
+Author = Mark Luis G. Sablan
+Partially Finished 5/31/2019
+*/
 
-
+// TODO
+// Able to create multiple charts
 
 let chartCtx;
 function draw(){
@@ -14,12 +16,9 @@ function draw(){
 //get highest number from an object/array
 function getHighest(dataSet){
 	let temp = dataSet[0];
-	// console.log(temp);
 	for (var i = 1; i < dataSet.length; i++) {
 		if(temp < dataSet[i])temp = dataSet[i];
-		// console.log(temp);
 	}
-	// console.log('highest number: '+ temp);
 	return temp;
 }
 
@@ -36,8 +35,9 @@ function getLines(highestNum){
 function Bar(label, width, height, xPos, yPos, highestNum, areaHeight, color){
 	// label/title of the bar
 	this.label = label;
+	this.areaHeight = areaHeight;
 	// scale multiplier
-	this.scale = areaHeight / highestNum;
+	this.scale = this.areaHeight / highestNum;
 	// the height of the bar, multiplied by negative number
 	// to convert it to negative number because of how the
 	// canvas x and y positions work
@@ -55,7 +55,6 @@ function Bar(label, width, height, xPos, yPos, highestNum, areaHeight, color){
 	// initial friction for acceleration
 	this.friction = 0.00001;
 	this.fillColor = color;
-	console.log("scale " + this.scale);
 }
 
 // Bar Prototype methods
@@ -67,23 +66,30 @@ Bar.prototype.draw = function(){
 	chartCtx.textAlign = 'center';
 	chartCtx.font = '11px Calibri'
 	chartCtx.fillText(this.label, this.xPos + (this.width/2), this.yPos + 15);
-	// chartCtx.globalAlpha = 1.0;
-	// chartCtx.strokeStyle = this.fillColor;
-	// chartCtx.rect(this.xPos, this.yPos, this.width, this.currentHeight);
-	// chartCtx.stroke();
 	this.update();
 }
 
 Bar.prototype.update = function(){
 	if(this.currentHeight > this.height){
 		// friction multiplier, the purpose of this number is for precision
-		this.friction *= 1.00001;
+		this.friction *= 1.09;
 		this.speed += this.friction;
 		this.currentHeight -= this.speed;
-		// console.log(this.friction + " " + this.speed);
 	}
+	// resets the speed and friction everytime the bar
+	// reaches its final height
+	this.speed = 3;
+	this.friction = 0.000001;
 }
 
+
+Bar.prototype.updateData = function(highestNum, height){
+	this.scale = this.areaHeight /  highestNum;
+	this.height = (this.scale * height) * -1;
+	if(this.currentHeight <= this.height){
+		this.currentHeight = this.height;
+	}
+}
 
 // Chart Constructor
 function Chart(ctx, data){
@@ -105,34 +111,26 @@ function Chart(ctx, data){
 	this.areaHeight = canvas.height - this.yGap;
 	// Highest number from dataset
 	this.peak = getHighest(this.data.data);
-	// this.peak = getHighest(this.data.data) + (10 - (getHighest(this.data.data) % 10));
+	// x Axis lines 
 	this.xLines = getLines(getHighest(this.data.data));
-	// Math.floor(this.areaHeight / this.peak);
 	this.xLineGaps = (this.areaHeight / this.xLines) ;
 	// Computes the bar width based on the population of dataset
 	this.barWidth = (this.areaWidth / this.data.data.length) - 15;
 	this.bars = [];
-	// spacing between bars
+	// Spacing between bars
 	this.barSpacing = 15;
-	// (this.areaWidth - (this.barWidth * this.bars.length)) / this.bars.length;
+	// Create initial bar objects
 	this.createBars();
-	console.log(this.bars);
 }
 
 Chart.prototype.createBars = function(){
-	// this.bars[0] = new Bar(this.data.label[0], this.barWidth, this.data.data[0], 80, this.yAxis, this.peak, 320);
 	for(let i = 0; i < this.data.data.length; i++){
-		// console.log(this.data.label[i], this.barWidth, this.data.data[i], this.xGap + 10, this.yAxis, this.peak, this.areaHeight);
 		this.bars[i] = new Bar(this.data.label[i], this.barWidth, this.data.data[i], ((this.barWidth + this.barSpacing) * i) + (this.barSpacing/2) + this.xGap, this.yAxis, this.peak, this.areaHeight - this.xLineGaps, this.data.color[i]);
-		//Here is where i left off
 		let test = (this.barWidth + this.barSpacing) * i;
-		// console.log("test :"+ test + `\nbarWidth: ${this.barWidth} \n barSpacing ${this.barSpacing}`);
 	}
 }
 
 Chart.prototype.createGrid = function(){
-
-	// console.log(`Peak ${this.peak} \nxLines ${this.xLines}\nxLineGaps ${this.xLineGaps}`);
 	// draw xAxis
 	chartCtx.globalAlpha = 1.0;
 	chartCtx.strokeStyle = 'black';
@@ -146,7 +144,7 @@ Chart.prototype.createGrid = function(){
 	chartCtx.moveTo(this.xGap, this.yAxis);
 	chartCtx.lineTo(canvas.width, this.yAxis);
 	chartCtx.stroke();
-	// console.log(this.xLineGaps);
+
 	// draw xAxis Lines
 	for (let i = 1; i < this.xLines + 1; i++) {
 		chartCtx.beginPath();
@@ -158,17 +156,17 @@ Chart.prototype.createGrid = function(){
 		chartCtx.textAlign = 'right';
 		chartCtx.font = '9px Calibri'
 		chartCtx.fillText((this.peak / (this.xLines - 1) * i).toFixed(1), this.xGap - 5, this.yAxis - this.xLineGaps - 2);
-		// console.log("Xlines: " + this.xLines + " xLineGaps: " + this.xLineGaps + " " + getHighest(this.data.data)/this.xLines);
 		this.xLineGaps += (this.xLineGaps / i);
-		// console.log(`xLineGaps ${this.yAxis - 30}`);
 	}
 	chartCtx.fillText("0", this.xGap - 5, this.yAxis);
+
 	this.xLineGaps  = this.areaHeight / this.xLines;
 	// display the chart title
 	chartCtx.textAlign = 'center';
 	chartCtx.font = '20px Calibri'
 	chartCtx.fillText(this.data.title, canvas.width/2, this.areaHeight + 45);
 }
+
 
 Chart.prototype.displayChart = function(){
 	this.createGrid();
@@ -179,4 +177,19 @@ Chart.prototype.displayChart = function(){
 
 Chart.prototype.drawChart = function(){
 	draw();
+}
+
+// update data
+Chart.prototype.updateBars = function(){
+	for (var i = 0; i < this.bars.length; i++) {
+		this.bars[i].updateData(this.peak, this.data.data[i]);
+	}
+}
+
+Chart.prototype.update = function(){
+	// get the peak/highest number in the data set
+	this.peak = getHighest(this.data.data);
+	this.createGrid();
+	//update bars
+	this.updateBars();
 }
