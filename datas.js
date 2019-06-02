@@ -1,6 +1,6 @@
 let canvas = document.getElementById('barChart');
-canvas.width = 1000;
-canvas.height = 500;
+canvas.width = 800;
+canvas.height = 450;
 let chart1 = new Chart(canvas.getContext('2d'), {
 	title : "Barchart 1",
 	label : ["data1", "data2", "data3", "data4", "data5", "data6", "data7", "data8", "data9"],
